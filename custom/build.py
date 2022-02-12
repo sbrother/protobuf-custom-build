@@ -11,15 +11,18 @@ class Command(setuptools.Command):
         pass
 
     def run(self):
-        log.info("Building protobufs NOW again...")
-        import protoletariat.rewrite
+        log.info("Running protobuf compilation...")
         all_protos = [f for f in setuptools.findall() if f.endswith('.proto')]
-        subprocess.run(['protoc', '--python_out=proto', '-Iproto'] + all_protos, check=True)
+        if not all_protos:
+            return
 
-        all_pb2 = [f for f in setuptools.findall() if f.endswith('pb2.py')]
-        log.info(f"All pb2 {', '.join(all_pb2)}")
+        root_dir = os.path.commonpath(all_protos)
+        log.info(f"Compiling protos in {root_dir}...")
+        subprocess.run(['protoc', '--python_out=' + root_dir, '-I' + root_dir]
+                       + all_protos, check=True)
 
+        log.info(f"Running protoletariat to fix imports...")
         subprocess.run(['protol', '--create-package', '--in-place',
-                        '--python-out', 'proto', 'protoc',
-                        f'--proto-path=proto'] + all_protos,
+                        '--python-out', root_dir, 'protoc',
+                        f'--proto-path={root_dir}'] + all_protos,
                        check=True)
