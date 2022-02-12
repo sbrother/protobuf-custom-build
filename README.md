@@ -9,7 +9,7 @@ for a full example of a protobuf repo using this package; it boils down to
 including the line
 
 ```
-distutils.command.build.build.sub_commands.append(('protobuf-custom-build', None))
+distutils.command.build.build.sub_commands.insert(0, ('protobuf-custom-build', None))
 ```
 
 in your `setup.py`.
